@@ -46,7 +46,7 @@ jobs:
       - run:
           name: Deploy Static Files to S3
           command: |
-            aws s3 sync build s3:\\demo-website-${CIRCLE_WORKFLOW_ID:0:8}
+            aws s3 sync build s3://demo-website-${CIRCLE_WORKFLOW_ID:0:8}
 
 workflows:
   default:
