@@ -18,8 +18,40 @@ jobs:
           name: List build folder
           command: |
             ls build
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/build
+
+  deploy:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install AWS CLI
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+      - run:
+          name: Create S3 Bucket
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/bucket.yml \
+              --stack-name T3C7-Mon-Demo-Webiste-${CIRCLE_WORKFLOW_ID:0:8} \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:8}"
+      - run:
+          name: Deploy Static Files to S3
+          command: |
+            aws s3 sync build s3:\\demo-website-${CIRCLE_WORKFLOW_ID:0:8}
 
 workflows:
   default:
     jobs:
       - build
+      - deploy:
+          requires:
+            - build
