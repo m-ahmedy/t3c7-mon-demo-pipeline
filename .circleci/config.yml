@@ -49,9 +49,37 @@ jobs:
             aws s3 sync build s3://demo-website-${CIRCLE_WORKFLOW_ID:0:8}
 
 workflows:
-  default:
+  prod:
     jobs:
-      - build
+      - build:
+          context: aws-p3-prod
+          filters:
+            branches:
+              only:
+                - master
       - deploy:
+          context: aws-p3-prod
+          requires:
+            - build
+
+  dev:
+    jobs:
+      - build:
+          context: aws-p3-dev
+          filters:
+            branches:
+              ignore:
+                - master
+
+  staging:
+    jobs:
+      - build:
+          context: aws-p3-staging
+          filters:
+            branches:
+              only:
+                - staging
+      - deploy:
+          context: aws-p3-staging
           requires:
             - build
